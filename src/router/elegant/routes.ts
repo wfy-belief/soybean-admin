@@ -40,6 +40,29 @@ export const generatedRoutes: GeneratedRoute[] = [
     }
   },
   {
+    name: 'commodity',
+    path: '/commodity',
+    component: 'layout.base',
+    meta: {
+      title: 'commodity',
+      i18nKey: 'route.commodity',
+      icon: 'carbon:http',
+      order: 2
+    },
+    children: [
+      {
+        name: 'commodity_list',
+        path: '/commodity/list',
+        component: 'view.commodity_list',
+        meta: {
+          title: 'commodity_list',
+          i18nKey: 'route.commodity_list',
+          order: 1
+        }
+      }
+    ]
+  },
+  {
     name: 'home',
     path: '/home',
     component: 'layout.base$view.home',

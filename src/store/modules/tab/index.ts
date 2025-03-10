@@ -166,6 +166,7 @@ export const useTabStore = defineStore(SetupStoreId.Tab, () => {
    * @param tab
    */
   async function switchRouteByTab(tab: App.Global.Tab) {
+    console.log(tab.fullPath,"-------------");
     const fail = await routerPush(tab.fullPath);
     if (!fail) {
       setActiveTabId(tab.id);

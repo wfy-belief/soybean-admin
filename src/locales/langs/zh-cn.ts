@@ -162,7 +162,9 @@ const local: App.I18n.Schema = {
     404: '页面不存在',
     500: '服务器错误',
     'iframe-page': '外链页面',
-    home: '首页'
+    home: '首页',
+    commodity: '商品管理',
+    commodity_list: '列表展示'
   },
   page: {
     login: {
