@@ -1,4 +1,7 @@
 import json5 from 'json5';
+import { createAlova, } from 'alova';
+import adapterFetch from 'alova/fetch';
+import VueHook from 'alova/vue';
 
 /**
  * Create service config by current env
@@ -73,3 +76,10 @@ function createProxyPattern(key?: App.Service.OtherBaseURLKey) {
 
   return `/proxy-${key}`;
 }
+
+
+export const alovaInstance = createAlova({
+  requestAdapter: adapterFetch(),
+  responded: response => response.json(),
+  statesHook: VueHook
+});

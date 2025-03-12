@@ -22,6 +22,7 @@ declare module "@elegant-router/types" {
     "500": "/500";
     "commodity": "/commodity";
     "commodity_list": "/commodity/list";
+    "commodity_query": "/commodity/query";
     "home": "/home";
     "iframe-page": "/iframe-page/:url";
     "login": "/login/:module(pwd-login|code-login|register|reset-pwd|bind-wechat)?";
@@ -85,6 +86,7 @@ declare module "@elegant-router/types" {
     | "iframe-page"
     | "login"
     | "commodity_list"
+    | "commodity_query"
     | "home"
   >;
 

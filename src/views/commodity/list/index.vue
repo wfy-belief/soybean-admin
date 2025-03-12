@@ -1,141 +1,115 @@
 <template>
-  <n-space vertical :size="12">
-    <n-space>
-      <n-button @click="sortName">Sort By Name (Ascend)</n-button>
-      <n-button @click="filterAddress">Filter Address (London)</n-button>
-      <n-button @click="clearFilters">Clear Filters</n-button>
-      <n-button @click="clearSorter">Clear Sorter</n-button>
-    </n-space>
-    <n-data-table
-      ref="dataTableInst"
-      :columns="columns"
-      :data="data"
-      :pagination="pagination"
-    />
-  </n-space>
+  <n-data-table
+    :columns="columns"
+    :data="data.records"
+    :row-key="rowKey"
+    :pagination="paginationReactive"
+  />
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue';
+<script setup>
+import { useRequest } from 'alova/client';
+import { NButton, useMessage } from 'naive-ui';
+import { h, reactive } from 'vue';
+import { alovaInstance } from '@/utils/service.js';
+
+const message = useMessage();
+const params = {
+  page: 1,
+  page_size: 20
+};
+
+const paginationReactive = reactive({
+  page: 1,
+  pageSize: 10,
+  pageTotal: 100,
+  showSizePicker: true,
+  pageSizes: [20, 50, 100],
+  // onChange: (page) => {
+  //   paginationReactive.page = page;
+  // },
+  // onUpdatePageSize: (pageSize) => {
+  //   paginationReactive.pageSize = pageSize;
+  //   paginationReactive.page = 1;
+  //   params.page = paginationReactive.page;
+  //   params.pageSize = pageSize;
+  // }
+});
+
+// 使用alova实例创建method并传给useRequest即可发送请求
+const { loading, data, refresh, error, send, update } = useRequest(
+  alovaInstance.Get(`http://localhost:8080/list`, {
+    params: params,
+    cacheFor: 0
+  }),
+  {
+    initialData: {
+      records: [],
+      total: 0,
+      size: 10,
+      current: 1,
+      pages: 0
+    }, // 设置data状态的初始数据
+    immediate: true // 是否立即发送请求，默认为true
+  }
+).onSuccess(event => {
+
+});
+
 
 const columns = [
   {
-    title: 'Name',
-    key: 'name'
+    title: '商品编码',
+    key: 'id'
   },
   {
-    title: 'Age',
-    key: 'age',
-    sorter: (row1, row2) => row1.age - row2.age
+    title: '省份',
+    key: 'area'
   },
   {
-    title: 'Chinese Score',
-    key: 'chinese',
-    defaultSortOrder: false,
-    sorter: {
-      compare: (a, b) => a.chinese - b.chinese,
-      multiple: 3
+    title: '价格',
+    key: 'price'
+  },
+  // {
+  //   title: '描述信息',
+  //   key: 'description'
+  // },
+  {
+    title: '用户名',
+    key: 'user_name'
+  },
+  {
+    title: '购买链接',
+    key: 'url',
+    render(row) {
+      return h(NButton, {
+          size: 'small',
+          onClick: () => {
+            params.a = 123;
+            send();
+            window.open(row.link, '_blank');
+          }
+        },
+        { default: () => '跳转地址' });
     }
   },
   {
-    title: 'Math Score',
-    defaultSortOrder: false,
-    key: 'math',
-    sorter: {
-      compare: (a, b) => a.math - b.math,
-      multiple: 2
-    }
-  },
-  {
-    title: 'English Score',
-    defaultSortOrder: false,
-    key: 'english',
-    sorter: {
-      compare: (a, b) => a.english - b.english,
-      multiple: 1
-    }
-  },
-  {
-    title: 'Address',
-    key: 'address',
-    filterOptions: [
-      {
-        label: 'London',
-        value: 'London'
-      },
-      {
-        label: 'New York',
-        value: 'New York'
-      }
-    ],
-    filter(value, row) {
-      return ~row.address.indexOf(value)
-    }
+    title: '发布时间',
+    key: 'publish_time'
+  }, {
+    title: '更新时间',
+    key: 'update_time'
   }
-]
+];
 
-const data = [
-  {
-    key: 0,
-    name: 'John Brown',
-    age: 32,
-    address: 'New York No. 1 Lake Park',
-    chinese: 98,
-    math: 60,
-    english: 70
-  },
-  {
-    key: 1,
-    name: 'Jim Green',
-    age: 42,
-    address: 'London No. 1 Lake Park',
-    chinese: 98,
-    math: 66,
-    english: 89
-  },
-  {
-    key: 2,
-    name: 'Joe Black',
-    age: 32,
-    address: 'Sidney No. 1 Lake Park',
-    chinese: 98,
-    math: 66,
-    english: 89
-  },
-  {
-    key: 3,
-    name: 'Jim Red',
-    age: 32,
-    address: 'London No. 2 Lake Park',
-    chinese: 88,
-    math: 99,
-    english: 89
-  }
-]
 
-export default defineComponent({
-  setup() {
-    const dataTableInstRef = ref(null)
-    return {
-      data,
-      columns,
-      dataTableInst: dataTableInstRef,
-      pagination: ref({ pageSize: 5 }),
-      filterAddress() {
-        dataTableInstRef.value.filter({
-          address: ['London']
-        })
-      },
-      sortName() {
-        dataTableInstRef.value.sort('name', 'ascend')
-      },
-      clearFilters() {
-        dataTableInstRef.value.filter(null)
-      },
-      clearSorter() {
-        dataTableInstRef.value.sort(null)
-      }
-    }
-  }
-})
+function rowKey(rowData) {
+  return rowData.id
+}
+
 </script>
+
+<!--todo 1.按照时间排序-->
+<!--todo 2.按照价格排序-->
+<!--todo 3.关键字搜索-->
+<!--todo 4.订单标记已购买，已删除-->

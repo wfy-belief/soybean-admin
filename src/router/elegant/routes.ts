@@ -59,6 +59,15 @@ export const generatedRoutes: GeneratedRoute[] = [
           i18nKey: 'route.commodity_list',
           order: 1
         }
+      },
+      {
+        name: 'commodity_query',
+        path: '/commodity/query',
+        component: 'view.commodity_query',
+        meta: {
+          title: 'commodity_query',
+          i18nKey: 'route.commodity_query'
+        }
       }
     ]
   },
