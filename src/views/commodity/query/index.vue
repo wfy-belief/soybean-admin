@@ -1,26 +1,11 @@
-<template>
-  <n-data-table
-    remote
-    ref="table"
-    :columns="columns"
-    :data="data"
-    :loading="loading"
-    :pagination="pagination"
-    :show="true"
-    :row-key="rowKey"
-    @update:page="handlePageChange"
-  />
-</template>
-
 <script>
 // @update:sorter="handleSorterChange"
 // @update:filters="handleFiltersChange"
 // @update:page="handlePageChange"
 import { defineComponent, h, onMounted, reactive, ref } from 'vue';
-import { useRequest } from 'alova/client';
+import { usePagination } from 'alova/client';
 import { NButton } from 'naive-ui';
 import { alovaInstance } from '@/utils/service.js';
-
 
 const columns = [
   {
@@ -47,37 +32,38 @@ const columns = [
     title: '购买链接',
     key: 'url',
     render(row) {
-      return h(NButton, {
+      return h(
+        NButton,
+        {
           size: 'small',
           onClick: () => {
-            params.a = 123;
-            send();
-            window.open(row.link, '_blank');
+            window.open(row.url, '_blank');
           }
         },
-        { default: () => '跳转地址' });
+        { default: () => '跳转地址' }
+      );
     }
   },
   {
     title: '发布时间',
     key: 'publish_time'
-  }, {
+  },
+  {
     title: '更新时间',
     key: 'update_time'
   }
 ];
 
-let page_ = 1
-let page_size_ = 15
-
-const { loading, data, refresh, error, send, update } = useRequest(
-  alovaInstance.Get(`http://localhost:8080/list`, {
-    params: {
-      page: page_,
-      page_size: page_size_,
-    },
-    cacheFor: 0
-  }),
+// https://alova.js.org/zh-CN/tutorial/client/strategy/use-pagination#%E6%B8%B2%E6%9F%93%E5%88%97%E8%A1%A8%E6%95%B0%E6%8D%AE
+const { loading, data, page, pageSize, total, send } = usePagination(
+  (page_param, page_size) =>
+    alovaInstance.Get(`http://localhost:8080/list`, {
+      params: {
+        page: page_param,
+        page_size
+      },
+      cacheFor: 0
+    }),
   {
     initialData: {
       records: [],
@@ -86,57 +72,72 @@ const { loading, data, refresh, error, send, update } = useRequest(
       current: 1,
       pages: 0
     }, // 设置data状态的初始数据
-    immediate: false // 是否立即发送请求，默认为true
+    immediate: false, // 是否立即发送请求，默认为true
+    total: response => {
+      return response.total;
+    },
+    data: response => response.records
   }
 );
 
 export default defineComponent({
   setup() {
-    const dataRef = ref([]);
-    const loadingRef = ref(true);
     const columnsRef = ref(columns);
     const paginationReactive = reactive({
-      page: page_,
-      pageCount: 1,
-      pageSize: page_size_,
+      page: page.value,
+      pageCount: total.value / pageSize.value,
+      pageSize: pageSize.value,
       showSizePicker: true,
       pageSizes: [20, 50, 100],
       prefix({ itemCount }) {
         return `Total is ${itemCount}.`;
+      },
+      onUpdatePageSize: update_page_size => {
+        paginationReactive.pageSize = update_page_size;
+        pageSize.value = update_page_size;
+        page.value = 1;
+        paginationReactive.page = 1;
       }
     });
 
     onMounted(() => {
-      send(paginationReactive).then((res) => {
-        dataRef.value = res.records;
-        paginationReactive.pageCount = res.pages;
-        paginationReactive.itemCount = res.total;
-        loadingRef.value = loading.value;
+      send().then(res => {
+        console.log(res);
+        paginationReactive.pageCount = total.value / pageSize.value;
       });
     });
 
     return {
-      data: dataRef,
+      data,
       columns: columnsRef,
       pagination: paginationReactive,
-      loading: loadingRef,
+      loading,
       rowKey(rowData) {
         return rowData.id;
       },
       handlePageChange(currentPage) {
-        if (!loadingRef.value) {
-          page_ = currentPage;
-          loadingRef.value = true;
-          send().then((res) => {
-            dataRef.value = res.records;
-            paginationReactive.page = currentPage;
-            paginationReactive.pageCount = res.pages;
-            paginationReactive.itemCount = res.total;
-            loadingRef.value = false;
-          });
-        }
+        page.value = currentPage;
+        paginationReactive.page = currentPage;
+        paginationReactive.itemCount = total.value;
+        paginationReactive.pageCount = total.value / pageSize.value;
       }
     };
   }
 });
 </script>
+
+<template>
+  <NDataTable
+    ref="table"
+    remote
+    :columns="columns"
+    :data="data"
+    :loading="loading"
+    :pagination="pagination"
+    :show="true"
+    :max-height="600"
+    :row-key="rowKey"
+    virtual-scroll
+    @update:page="handlePageChange"
+  />
+</template>
