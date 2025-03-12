@@ -101,8 +101,7 @@ export default defineComponent({
     });
 
     onMounted(() => {
-      send().then(res => {
-        console.log(res);
+      send().then(() => {
         paginationReactive.pageCount = total.value / pageSize.value;
       });
     });
@@ -128,7 +127,6 @@ export default defineComponent({
 
 <template>
   <NDataTable
-    ref="table"
     remote
     :columns="columns"
     :data="data"
